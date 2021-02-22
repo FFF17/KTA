@@ -125,11 +125,11 @@
 
                             <div class="col-md-6">
 
-                            <select class="form-control" name="provinsi" aria-label="Default select example">
-                            <option value="{{$user->provinsi}}" selected="">{{$prov->provinsi}}</option>
-                         @foreach ($provinsis as $key => $value)    
-                            <option value="{{ $key }}">{{ $value }}</option>
-                         @endforeach                          
+                            <select class="form-control" name="provinsi" id="select_provinsi" aria-label="Default select example">
+                            <!-- <option value="{{$user->provinsi}}" selected="">{{$prov->provinsi}}</option> -->
+                             @foreach ($provinsis as $key => $value)    
+                                <option value="{{ $key }}">{{ $value }}</option>
+                             @endforeach
                             </select>
 
                                 @if ($errors->has('provinsi'))
@@ -145,7 +145,7 @@
 
                             <div class="col-md-6">
 
-                            <select class="form-control" name="kabupaten" aria-label="Default select example">
+                            <select class="form-control" name="kabupaten" id="select_kabupaten" aria-label="Default select example">
                                <option selected>--PILIH KOTA/KABUPATEN--</option>
                             </select>
 
@@ -163,7 +163,7 @@
 
                             <div class="col-md-6">
 
-                            <select class="form-control" name="kecamatan" aria-label="Default select example">
+                            <select class="form-control" name="kecamatan" id="select_kecamatan" aria-label="Default select example">
                                <option selected>--PILIH KECAMATAN--</option>
                             </select>
 
@@ -180,7 +180,7 @@
 
                             <div class="col-md-6">
 
-                            <select class="form-control" name="kelurahan" aria-label="Default select example">
+                            <select class="form-control" name="kelurahan" id="select_kelurahan" aria-label="Default select example">
                                <option selected>--PILIH KELURAHAN--</option>
                             </select>
 
@@ -242,10 +242,10 @@
                             <label for="telepon" class="col-md-4 col-form-label text-md-right">{{ __('Telepon') }}</label>
                             <div class="col-md-6">
                                 <div class="input-group">
-        <div class="input-group-prepend">
-          <span class="input-group-text" value="+62"  name="telepon">+62</span>
-        </div>
-                                <input  type="number" pattern="/^-?\d+\.?\d*$/" onKeyPress="if(this.value.length==15) return false;"  class="form-control{{ $errors->has('telepon') ? ' is-invalid' : '' }}" name="telepon" value="{{ $user->telepon }}" required autofocus>
+                                <div class="input-group-prepend">
+                                  <span class="input-group-text" value="+62"  name="telepon">+62</span>
+                                </div>
+                                <input  type="number" pattern="/^-?\.?\d*$/" onKeyPress="if(this.value.length==15) return false;"  class="form-control{{ $errors->has('telepon') ? ' is-invalid' : '' }}" name="telepon" value="{{ $user->telepon }}" required autofocus>
 
                                 @if ($errors->has('telepon'))
                                     <span class="invalid-feedback" role="alert">
@@ -270,25 +270,12 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="password" class="col-md-4 col-form-label text-md-right">{{ __('Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" name="password"value="{{ $user->password }}" required>
-
-                                @if ($errors->has('password'))
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $errors->first('password') }}</strong>
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
 
                         <div class="form-group row">
                             <label for="foto" class="col-md-4 col-form-label text-md-right">{{ __('Upload Foto KTP') }}</label>
 
                             <div class="col-md-6">
-                                <input id="foto" type="file" class="form-control{{ $errors->has('foto') ? ' is-invalid' : '' }}" name="foto" value=" " required>{{ $user->foto}}<p style="color: red;">*Max 2048KB|jpeg,png,jpg</p>
+                                <input id="foto" type="file" class="form-control{{ $errors->has('foto') ? ' is-invalid' : '' }}" name="foto" value="{{$user->foto}}" required>{{ $user->foto}}<p style="color: red;">*Max 2048KB|jpeg,png,jpg</p>
 
                                 @if ($errors->has('foto'))
                                     <span class="invalid-feedback" role="alert">
@@ -323,94 +310,122 @@
  <script type="text/javascript">
     jQuery(document).ready(function ()
     {
+            var provinsi = '{{$user->provinsi}}'
+            var kabupaten = '{{$user->kabupaten}}'
+            var kecamatan = '{{$user->kecamatan}}'
+            var kelurahan = '{{$user->kelurahan}}'
+            $('#select_provinsi').val(provinsi);
+            if($('#select_provinsi').val()){
+                getKabupaten(provinsi, kabupaten)
+
+                if($('#select_kabupaten').val()){
+                    getKecamatan(kabupaten, kecamatan)
+                    $('#select_kecamatan').val(kecamatan);
+
+                    if(kecamatan){
+                        getKelurahan(kecamatan, kelurahan)
+                        $('#select_kelurahan').val(kelurahan);
+                    }
+                }
+            }
+
             jQuery('select[name="provinsi"]').on('change',function(){
-               var provinsiID = jQuery(this).val();
-               if(provinsiID)
-               {
-                  jQuery.ajax({
-                     url : 'getkabupaten/' +provinsiID,
-                     type : "GET",
-                     dataType : "json",
-                     success:function(data)
-                     {
-                        console.log(data);
-                        jQuery('select[name="kabupaten"]').empty();
-                        jQuery('select[name="kecamatan"]').empty();
-                        jQuery('select[name="kelurahan"]').empty();
-
-                        $('select[name="kabupaten"]').append('<option> Pilih kabupaten <option>');
-
-                        jQuery.each(data, function(key,value){
-                           $('select[name="kabupaten"]').append('<option value="'+ key +'">'+ value +'</option>');
-
-                        });
-                     }
-                  });
-               }
-               else
-               {
-                  $('select[name="kabupaten"]').empty();
-                  $('select[name="kecamatan"]').empty();
-                  $('select[name="kelurahan"]').empty();
-
-               }
+                getKabupaten(jQuery(this).val())
             });
 
 
             jQuery('select[name="kabupaten"]').on('change',function(){
-               var kabupatenID = jQuery(this).val();
-               if(kabupatenID)
-               {
-                  jQuery.ajax({
-                     url : '    getkecamatan/' +kabupatenID,
-                     type : "GET",
-                     dataType : "json",
-                     success:function(data)
-                     {
-                        console.log(data);
-                        jQuery('select[name="kecamatan"]').empty();
-                        jQuery('select[name="kelurahan"]').empty();
-                        $('select[name="kecamatan"]').append('<option value="">Pilih Kecamatan</option>');
-
-                        jQuery.each(data, function(key,value){
-                           $('select[name="kecamatan"]').append('<option value="'+ key +'">'+ value +'</option>');
-                        });
-                     }
-                  });
-               }
-               else
-               {
-                  $('select[name="kecamatan"]').empty();
-                  $('select[name="kelurahan"]').empty();
-               }
+                getKecamatan(jQuery(this).val())
             });
-                    jQuery('select[name="kecamatan"]').on('change',function(){
-               var kecamatanID = jQuery(this).val();
-               if(kecamatanID)
-               {
-                  jQuery.ajax({
-                     url : 'getkelurahan/' +kecamatanID,
-                     type : "GET",
-                     dataType : "json",
-                     success:function(data)
-                     {
-                        console.log(data);
-                        jQuery('select[name="kelurahan"]').empty();
-                        $('select[name="kelurahan"]').append('<option value="">Pilih Kelurahan</option>');
-
-                        jQuery.each(data, function(key,value){
-                           $('select[name="kelurahan"]').append('<option value="'+ key +'">'+ value +'</option>');
-                        });
-                     }
-                  });
-               }
-               else
-               {
-                  $('select[name="kelurahan"]').empty();
-               }
+            jQuery('select[name="kecamatan"]').on('change',function(){
+               getKelurahan(jQuery(this).val())
             });
 
 
     });
+
+    function getKabupaten(provinsiID, kabupatenId = 0){
+       if(provinsiID){
+          jQuery.ajax({
+             url : 'getkabupaten/' +provinsiID,
+             type : "GET",
+             dataType : "json",
+             success:function(data)
+             {
+                jQuery('select[name="kabupaten"]').empty();
+                jQuery('select[name="kecamatan"]').empty();
+                jQuery('select[name="kelurahan"]').empty();
+
+                $('select[name="kabupaten"]').append('<option> Pilih kabupaten <option>');
+
+                jQuery.each(data, function(key,value){
+                   $('select[name="kabupaten"]').append('<option value="'+ key +'">'+ value +'</option>');
+
+                });
+
+                if(kabupatenId){
+                    $('#select_kabupaten').val(kabupatenId)
+                }
+             }
+          });
+       }else{
+          $('select[name="kabupaten"]').empty();
+          $('select[name="kecamatan"]').empty();
+          $('select[name="kelurahan"]').empty();
+
+       }
+    }
+
+    function getKecamatan(kabupatenId, kecamatanId = 0){
+       if(kabupatenId){
+              jQuery.ajax({
+                 url : 'getkecamatan/' +kabupatenId,
+                 type : "GET",
+                 dataType : "json",
+                 success:function(data)
+                 {
+                    jQuery('select[name="kecamatan"]').empty();
+                    jQuery('select[name="kelurahan"]').empty();
+                    $('select[name="kecamatan"]').append('<option value="">Pilih Kecamatan</option>');
+
+                    jQuery.each(data, function(key,value){
+                       $('select[name="kecamatan"]').append('<option value="'+ key +'">'+ value +'</option>');
+                    });
+
+                    if(kecamatanId){
+                        $('#select_kecamatan').val(kecamatanId)
+                    }
+                 }
+              });
+           }else{
+              $('select[name="kecamatan"]').empty();
+              $('select[name="kelurahan"]').empty();
+           }
+    }
+
+    function getKelurahan(kecamatanId, kelurahanId = 0){
+        if(kecamatanId){
+          jQuery.ajax({
+             url : 'getkelurahan/' +kecamatanId,
+             type : "GET",
+             dataType : "json",
+             success:function(data)
+             {
+                jQuery('select[name="kelurahan"]').empty();
+                $('select[name="kelurahan"]').append('<option value="">Pilih Kelurahan</option>');
+
+                jQuery.each(data, function(key,value){
+                   $('select[name="kelurahan"]').append('<option value="'+ key +'">'+ value +'</option>');
+                });
+
+                if(kelurahanId){
+                    $('#select_kelurahan').val(kelurahanId)
+                }
+             }
+          });
+       }else{
+          $('select[name="kelurahan"]').empty();
+       }
+    }
     </script>
 @endsection

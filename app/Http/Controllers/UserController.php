@@ -53,10 +53,48 @@ class UserController extends Controller
 
 		    $user = DB::table('users')->where('id',$id)->first();
 		    $prov = DB::table('provinsis')->where('kode',$user->provinsi)->first();
+		    $kab = DB::table('kabupatens')->where('kode',$user->kabupaten)->first();
+			$kec = DB::table('kecamatans')->where('kode',$user->kecamatan)->first();
+			$kel = DB::table('kelurahans')->where('kode',$user->kelurahan)->first();
 		    $provinsis = DB::table('provinsis')->pluck("provinsi","kode");
-		    dd($user);
-		    return view('User/edit')->with(['user' => $user,'provinsis' => $provinsis,'prov' => $prov]);
+		    
+		    return view('User/edit')->with([
+		    	'user' => $user,
+		    	'provinsis' => $provinsis,
+		    	'prov' => $prov,
+		    	'kab' => $kab,
+		    	'kec' => $kec,
+		    	'kel' => $kel,
+		    ]);
 		 
+		}
+		public function update(Request $r){
+
+	 		$id = $r->input('id');
+            $user = User::find($id);
+            $user->nik = $r->input('nik');
+            $user->first_name = $r->input('first_name');
+	        $user->last_name = $r->input('last_name');
+	        $user->tempat_lahir = $r->input('tempat_lahir');
+	        $user->tanggal_lahir = $r->input('tanggal_lahir');
+	        $user->jk = $r->input('jk');
+	        $user->provinsi = $r->input('provinsi');
+	        $user->kabupaten = $r->input('kabupaten');
+	        $user->kecamatan = $r->input('kecamatan');
+	        $user->kelurahan = $r->input('kelurahan');
+	        $user->alamat = $r->input('alamat');
+	        $user->status = $r->input('status');
+	        $user->telepon = $r->input('telepon');
+	        $user->email = $r->input('email');
+            $file = $r->file('foto');
+            $user->foto = $file->getClientOriginalName();
+            $file->move('data_file/', $file->getClientOriginalName());
+            $user->update();
+
+            return redirect(url('User/home'));
+
+
+
 		}
 
 		  public function getKabupaten($id) 
